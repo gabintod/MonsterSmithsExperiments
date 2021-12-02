@@ -14,18 +14,20 @@ class TodoListTile extends StatefulWidget {
   final Function(TodoList parent, int index, Todo element) onEditItem;
   final Function(Todo element) onDelete;
   final Function(TodoList parent, Todo element) onDeleteItem;
+  final bool primary;
 
-  const TodoListTile(
-      {Key key,
-      @required this.source,
-      this.expanded,
-      this.onChange,
-      this.onAdd,
-      this.onEdit,
-      this.onEditItem,
-      this.onDelete,
-      this.onDeleteItem})
-      : assert(source != null),
+  const TodoListTile({
+    Key key,
+    @required this.source,
+    this.expanded,
+    this.onChange,
+    this.onAdd,
+    this.onEdit,
+    this.onEditItem,
+    this.onDelete,
+    this.onDeleteItem,
+    this.primary = false,
+  })  : assert(source != null),
         super(key: key);
 
   @override
@@ -55,9 +57,9 @@ class _TodoListTileState extends State<TodoListTile> {
         child: Column(
           children: [
             ListTile(
-              leading: Icon(widget.source.done
-                  ? Icons.check_box
-                  : Icons.check_box_outline_blank),
+              leading: widget.source.done == true
+                  ? Icon(Icons.check_box, color: Theme.of(context).primaryColor)
+                  : Icon(Icons.check_box_outline_blank),
               trailing: Icon(expanded
                   ? Icons.keyboard_arrow_up
                   : Icons.keyboard_arrow_down),
@@ -67,6 +69,7 @@ class _TodoListTileState extends State<TodoListTile> {
                 Todo edited = await showDialog<Todo>(
                   context: context,
                   child: TodoDialog(
+                    canChangeType: widget.primary != true,
                     source: widget.source,
                     onDelete: () => widget.onDelete?.call(widget.source),
                   ),

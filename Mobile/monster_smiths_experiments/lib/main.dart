@@ -1,14 +1,12 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:monster_smiths_experiments/widgets/HomePage.dart';
+import 'package:monster_smiths_experiments/widgets/home/HomePage.dart';
+import 'package:monster_smiths_experiments/widgets/home/Profiler.dart';
 
 void main() {
-  runApp(MaterialApp(
-    theme: ThemeData(
-      primarySwatch: Colors.red,
-      visualDensity: VisualDensity.adaptivePlatformDensity,
-      brightness: Brightness.dark,
+  runApp(
+    Profiler(
+      child: HomePage(),
     ),
-    home: HomePage(),
-  ));
+  );
 }

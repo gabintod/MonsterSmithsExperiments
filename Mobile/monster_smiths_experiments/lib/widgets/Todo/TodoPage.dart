@@ -41,11 +41,18 @@ class _TodoPageState extends State<TodoPage> {
                   Icon(
                     Icons.check,
                     color: Colors.green,
-                    size: Theme.of(context).textTheme.headline2.fontSize,
+                    size: Theme
+                        .of(context)
+                        .textTheme
+                        .headline2
+                        .fontSize,
                   ),
                   Text(
                     'Todo',
-                    style: Theme.of(context).textTheme.headline2,
+                    style: Theme
+                        .of(context)
+                        .textTheme
+                        .headline2,
                   ),
                 ],
               ),
@@ -68,12 +75,17 @@ class _TodoPageState extends State<TodoPage> {
                               Icon(
                                 Icons.add,
                                 color:
-                                    Theme.of(context).textTheme.caption.color,
+                                Theme
+                                    .of(context)
+                                    .textTheme
+                                    .caption
+                                    .color,
                               ),
                               Text(
                                 'Add list',
                                 style: TextStyle(
-                                    color: Theme.of(context)
+                                    color: Theme
+                                        .of(context)
                                         .textTheme
                                         .caption
                                         .color),
@@ -100,6 +112,7 @@ class _TodoPageState extends State<TodoPage> {
                     onEditItem: _onEdit,
                     onDelete: (todo) => _onDelete(null, todo),
                     onDeleteItem: _onDelete,
+                    primary: true,
                   );
                 },
               ),
@@ -130,10 +143,10 @@ class _TodoPageState extends State<TodoPage> {
           parent.items.add(element);
         else
           parent.items = [element];
-
-        parent.isComplete;
       } else
         lists.add(element);
+
+      _refreshDoneValues();
     });
 
     _save().then((_) => print('added and saved'));
@@ -143,11 +156,12 @@ class _TodoPageState extends State<TodoPage> {
     print('Change ${parent?.items[index] ?? lists[index]} to $element');
 
     setState(() {
-      if (parent != null) {
+      if (parent != null)
         parent.items[index] = element;
-        parent.isComplete;
-      } else
+      else
         lists[index] = element;
+
+      _refreshDoneValues();
     });
 
     _save().then((_) => print('edited and saved'));
@@ -155,13 +169,18 @@ class _TodoPageState extends State<TodoPage> {
 
   void _onDelete(TodoList parent, Todo element) {
     setState(() {
-      if (parent != null) {
+      if (parent != null)
         parent.items.remove(element);
-        parent.isComplete;
-      } else
+      else
         lists.remove(element);
+
+      _refreshDoneValues();
     });
 
     _save().then((_) => print('removed and saved'));
+  }
+
+  void _refreshDoneValues() {
+    lists?.forEach((list) => list.isComplete);
   }
 }

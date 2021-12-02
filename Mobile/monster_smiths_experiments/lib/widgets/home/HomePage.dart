@@ -44,7 +44,7 @@ class _HomePageState extends State<HomePage> {
                       child: Material(
                         elevation: 5,
                         borderRadius: BorderRadius.circular(10),
-                        color: Color(0xFF404040),
+                        color: Theme.of(context).backgroundColor,
                         child: ListTile(
                           leading: Icon(
                             Icons.check,
@@ -60,7 +60,7 @@ class _HomePageState extends State<HomePage> {
                       child: Material(
                         elevation: 5,
                         borderRadius: BorderRadius.circular(10),
-                        color: Color(0xFF404040),
+                        color: Theme.of(context).backgroundColor,
                         child: ListTile(
                           leading: Icon(RpgAwesome.perspective_dice_six, color: Colors.red),
                           title: Text('Random'),

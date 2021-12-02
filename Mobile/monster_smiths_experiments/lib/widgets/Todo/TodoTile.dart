@@ -32,9 +32,9 @@ class _TodoTileState extends State<TodoTile> {
         color: Theme.of(context).colorScheme.surface,
         child: ListTile(
           leading: IconButton(
-            icon: Icon(widget.source.done == true
-                ? Icons.check_box
-                : Icons.check_box_outline_blank),
+            icon: widget.source.done == true
+                ? Icon(Icons.check_box, color: Theme.of(context).primaryColor)
+                : Icon(Icons.check_box_outline_blank),
             onPressed: () {
               _toggleState();
               widget.onChange?.call(widget.source);

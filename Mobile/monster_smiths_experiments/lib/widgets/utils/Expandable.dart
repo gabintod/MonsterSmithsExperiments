@@ -78,7 +78,7 @@ class _ExpandableState extends State<Expandable>
         heightFactor: widget.axis == Axis.vertical
             ? (widget.expanded ? _animation.value : _reverseAnimation.value)
             : null,
-        child: widget.child,
+        child: _controller.isDismissed ? null : widget.child,
       ),
     );
   }

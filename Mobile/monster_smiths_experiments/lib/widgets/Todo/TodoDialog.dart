@@ -39,6 +39,7 @@ class _TodoDialogState extends State<TodoDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
+      scrollable: true,
       title: Text(
           '${widget.source != null ? 'Edit' : 'Add'} ${_isList ? 'a List' : 'a Todo'}'),
       content: Form(
