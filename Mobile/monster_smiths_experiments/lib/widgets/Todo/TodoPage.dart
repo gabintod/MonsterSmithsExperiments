@@ -59,66 +59,32 @@ class _TodoPageState extends State<TodoPage> {
             ),
             Expanded(
               child: ListView.builder(
-                itemCount: (lists?.length ?? 0) + 1,
-                itemBuilder: (context, index) {
-                  if (index >= (lists?.length ?? 0))
-                    return Padding(
-                      padding: EdgeInsets.all(10),
-                      child: Opacity(
-                        opacity: 0.5,
-                        child: ListTile(
-                          title: Wrap(
-                            alignment: WrapAlignment.center,
-                            crossAxisAlignment: WrapCrossAlignment.center,
-                            spacing: 5,
-                            children: [
-                              Icon(
-                                Icons.add,
-                                color:
-                                Theme
-                                    .of(context)
-                                    .textTheme
-                                    .caption
-                                    .color,
-                              ),
-                              Text(
-                                'Add list',
-                                style: TextStyle(
-                                    color: Theme
-                                        .of(context)
-                                        .textTheme
-                                        .caption
-                                        .color),
-                              ),
-                            ],
-                          ),
-                          onTap: () async {
-                            Todo added = await showDialog<Todo>(
-                                context: context,
-                                child: TodoDialog(
-                                    isList: true, canChangeType: false));
-
-                            if (added != null) _onAdd(null, added);
-                          },
-                        ),
-                      ),
-                    );
-
-                  return TodoListTile(
-                    source: lists[index],
-                    onChange: (_) => _save().then((_) => print('saved')),
-                    onAdd: _onAdd,
-                    onEdit: (todo) => _onEdit(null, index, todo),
-                    onEditItem: _onEdit,
-                    onDelete: (todo) => _onDelete(null, todo),
-                    onDeleteItem: _onDelete,
-                    primary: true,
-                  );
-                },
+                itemCount: lists?.length ?? 0,
+                itemBuilder: (context, index) => TodoListTile(
+                  source: lists[index],
+                  onChange: (_) => _save().then((_) => print('saved')),
+                  onAdd: _onAdd,
+                  onEdit: (todo) => _onEdit(null, index, todo),
+                  onEditItem: _onEdit,
+                  onDelete: (todo) => _onDelete(null, todo),
+                  onDeleteItem: _onDelete,
+                  primary: true,
+                ),
               ),
             ),
           ],
         ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        child: Icon(Icons.add),
+        onPressed: () async {
+          Todo added = await showDialog<Todo>(
+              context: context,
+              child: TodoDialog(
+                  isList: true, canChangeType: false));
+
+          if (added != null) _onAdd(null, added);
+        },
       ),
     );
   }
@@ -153,7 +119,8 @@ class _TodoPageState extends State<TodoPage> {
   }
 
   void _onEdit(TodoList parent, int index, Todo element) {
-    print('Change ${parent?.items[index] ?? lists[index]} to $element');
+    print('_onEdit($parent, $index, $element)');
+    print('Change ${(parent?.items ?? lists)[index]} to $element');
 
     setState(() {
       if (parent != null)

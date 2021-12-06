@@ -4,14 +4,12 @@ import 'package:monster_smiths_experiments/models/Todo/TodoList.dart';
 
 class TodoDialog extends StatefulWidget {
   final Todo source;
-  final Function() onDelete;
   final bool canChangeType;
   final bool isList;
 
   const TodoDialog(
       {Key key,
       this.source,
-      this.onDelete,
       this.canChangeType = true,
       this.isList})
       : super(key: key);
@@ -101,43 +99,6 @@ class _TodoDialogState extends State<TodoDialog> {
           onPressed: () => Navigator.pop(context),
           child: Text('Cancel'),
         ),
-        if (widget.onDelete != null)
-          TextButton(
-            onPressed: () async {
-              if (widget.source == null ||
-                  !(widget.source is TodoList) ||
-                  (widget.source as TodoList).items == null ||
-                  (widget.source as TodoList).items.isEmpty) {
-                widget.onDelete();
-                Navigator.pop(context);
-                return;
-              }
-
-              bool delete = await showDialog<bool>(
-                context: context,
-                child: AlertDialog(
-                  content: Text(
-                      'You are deleting a non empty List. All its items will be lost.'),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(context, false),
-                      child: Text('Cancel'),
-                    ),
-                    TextButton(
-                      onPressed: () => Navigator.pop(context, true),
-                      child: Text('Continue'),
-                    ),
-                  ],
-                ),
-              );
-
-              if (delete) {
-                widget.onDelete();
-                Navigator.pop(context);
-              }
-            },
-            child: Text('Delete'),
-          ),
         TextButton(
           onPressed: _confirm,
           child: Text(widget.source != null ? 'Edit' : 'Add'),
@@ -186,7 +147,7 @@ class _TodoDialogState extends State<TodoDialog> {
           if (confirm == true)
             Navigator.pop(
               context,
-              Todo(title: _title, description: _description),
+              Todo(title: _title, description: _description, done: widget.source?.done ?? false),
             );
         }
       } else {
@@ -198,7 +159,7 @@ class _TodoDialogState extends State<TodoDialog> {
         else
           Navigator.pop(
             context,
-            Todo(title: _title, description: _description),
+            Todo(title: _title, description: _description, done: widget.source?.done ?? false),
           );
       }
     }
