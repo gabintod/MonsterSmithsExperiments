@@ -6,6 +6,7 @@ import 'package:monster_smiths_experiments/widgets/Todo/TodoTile.dart';
 import 'package:monster_smiths_experiments/widgets/utils/Expandable.dart';
 
 class TodoListTile extends StatefulWidget {
+  final int index;
   final TodoList source;
   final bool expanded;
   final Function(bool isDone) onChange;
@@ -18,6 +19,7 @@ class TodoListTile extends StatefulWidget {
 
   const TodoListTile({
     Key key,
+    @required this.index,
     @required this.source,
     this.expanded,
     this.onChange,
@@ -36,6 +38,7 @@ class TodoListTile extends StatefulWidget {
 
 class _TodoListTileState extends State<TodoListTile> {
   bool expanded;
+  Offset _tapPosition;
 
   @override
   void initState() {
@@ -56,142 +59,167 @@ class _TodoListTileState extends State<TodoListTile> {
         color: Theme.of(context).colorScheme.background,
         child: Column(
           children: [
-            PopupMenuButton(
-              child: ListTile(
-                leading: widget.source.done == true
-                    ? Icon(Icons.check_box,
-                        color: Theme.of(context).colorScheme.primary)
-                    : Icon(Icons.check_box_outline_blank),
-                trailing: GestureDetector(
-                  onTap: () => setState(() => expanded = !expanded),
-                  child: Icon(expanded
+            GestureDetector(
+              child: ReorderableDragStartListener(
+                index: widget.index,
+                child: ListTile(
+                  leading: widget.source.done == true
+                      ? Icon(Icons.check_box,
+                      color: Theme.of(context).colorScheme.primary)
+                      : Icon(Icons.check_box_outline_blank),
+                  trailing: Icon(expanded
                       ? Icons.keyboard_arrow_up
                       : Icons.keyboard_arrow_down),
-                ),
-                title: Text(widget.source.title ?? ''),
-                subtitle: widget.source.description != null &&
-                        widget.source.description.trim().isNotEmpty
-                    ? Text(widget.source.description)
-                    : null,
-              ),
-              itemBuilder: (context) => [
-                PopupMenuItem<bool>(
-                  value: false,
-                  child: Text('Edit'),
-                ),
-                PopupMenuItem<bool>(
-                  value: true,
-                  child: Text('Delete'),
-                ),
-              ],
-              onSelected: (isDelete) async {
-                if (isDelete == false) {
-                  Todo edited = await showDialog<Todo>(
-                    context: context,
-                    child: TodoDialog(
-                      canChangeType: !widget.primary,
-                      source: widget.source,
-                    ),
-                  );
-
-                  if (edited != null) widget.onEdit?.call(edited);
-                } else if (isDelete == true) {
-                  bool delete = await showDialog<bool>(
+                  title: Text(widget.source.title ?? ''),
+                  subtitle: widget.source.description != null &&
+                      widget.source.description.trim().isNotEmpty
+                      ? Text(widget.source.description)
+                      : null,
+                  onTap: () => setState(() => expanded = !expanded),
+                  onLongPress: () async {
+                    bool isDelete = await showMenu<bool>(
                       context: context,
-                      child: AlertDialog(
-                        content: Text(
-                            'You are deleting a non empty List. All its items will be lost.'),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Navigator.pop(context, false),
-                            child: Text('Cancel'),
-                          ),
-                          TextButton(
-                            onPressed: () => Navigator.pop(context, true),
-                            child: Text('Continue'),
-                          ),
-                        ],
+                      position: RelativeRect.fromRect(
+                        _tapPosition & const Size(40, 40),
+                        Offset.zero & (Overlay.of(context).context.findRenderObject() as RenderBox).size,
                       ),
-                    );
-
-                    if (delete != true)
-                      return;
-
-                  delete = await showDialog<bool>(
-                    context: context,
-                    child: AlertDialog(
-                      content: Text(
-                          'Delete ${widget.source.title} ?'),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.pop(context, false),
-                          child: Text('No'),
+                      items: [
+                        PopupMenuItem<bool>(
+                          value: false,
+                          child: Text('Edit'),
                         ),
-                        TextButton(
-                          onPressed: () => Navigator.pop(context, true),
-                          child: Text('Yes'),
+                        PopupMenuItem<bool>(
+                          value: true,
+                          child: Text('Delete'),
                         ),
                       ],
-                    ),
-                  );
+                    );
 
-                  if (delete == true) widget.onDelete?.call(widget.source);
-                }
-              },
-              offset: Offset(1, 1),
+                    if (isDelete == false) {
+                      Todo edited = await showDialog<Todo>(
+                        context: context,
+                        builder: (context) => TodoDialog(
+                          canChangeType: !widget.primary,
+                          source: widget.source,
+                        ),
+                      );
+
+                      if (edited != null) widget.onEdit?.call(edited);
+                    } else if (isDelete == true) {
+                      bool delete = await showDialog<bool>(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          content: Text(
+                              'You are deleting a non empty List. All its items will be lost.'),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(context, false),
+                              child: Text('Cancel'),
+                            ),
+                            TextButton(
+                              onPressed: () => Navigator.pop(context, true),
+                              child: Text('Continue'),
+                            ),
+                          ],
+                        ),
+                      );
+
+                      if (delete != true) return;
+
+                      delete = await showDialog<bool>(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          content: Text('Delete ${widget.source.title} ?'),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(context, false),
+                              child: Text('No'),
+                            ),
+                            TextButton(
+                              onPressed: () => Navigator.pop(context, true),
+                              child: Text('Yes'),
+                            ),
+                          ],
+                        ),
+                      );
+
+                      if (delete == true) widget.onDelete?.call(widget.source);
+                    }
+                  },
+                ),
+              ),
+              onTapDown: (details) => _tapPosition = details.globalPosition,
             ),
             Expandable(
               expanded: expanded,
               alignment: Alignment.bottomCenter,
               child: Material(
                 color: Theme.of(context).scaffoldBackgroundColor,
-                child: ListView.builder(
-                  shrinkWrap: true,
-                  primary: false,
-                  itemCount: (widget.source.items?.length ?? 0) + 1,
-                  itemBuilder: (context, index) {
-                    if (index >= (widget.source.items?.length ?? 0))
-                      return TextButton(
-                        onPressed: () async {
-                          Todo added = await showDialog<Todo>(
-                              context: context, child: TodoDialog());
+                child: Column(
+                  children: [
+                    ReorderableListView.builder(
+                      buildDefaultDragHandles: false,
+                      shrinkWrap: true,
+                      primary: false,
+                      itemCount: widget.source.items?.length ?? 0,
+                      itemBuilder: (context, index) {
+                        Todo item = widget.source.items[index];
 
-                          if (added != null)
-                            widget.onAdd?.call(widget.source, added);
-                        },
-                        child: Wrap(
-                          crossAxisAlignment: WrapCrossAlignment.center,
-                          spacing: 5,
-                          children: [
-                            Icon(Icons.add),
-                            Text('Add item'),
-                          ],
-                        ),
-                      );
+                        if (item is TodoList)
+                          return TodoListTile(
+                            index: index,
+                            key: Key('$index'),
+                            source: item,
+                            onChange: (_) => _change(widget.source.isComplete),
+                            onAdd: widget.onAdd,
+                            onEdit: (todo) =>
+                                widget.onEditItem?.call(widget.source, index, todo),
+                            onEditItem: widget.onEditItem,
+                            onDelete: (todo) =>
+                                widget.onDeleteItem?.call(widget.source, todo),
+                            onDeleteItem: widget.onDeleteItem,
+                          );
+                        return TodoTile(
+                          index: index,
+                          key: Key('$index'),
+                          source: item,
+                          onChange: (_) => _change(widget.source.isComplete),
+                          onEdit: (todo) =>
+                              widget.onEditItem?.call(widget.source, index, todo),
+                          onDelete: (todo) =>
+                              widget.onDeleteItem?.call(widget.source, todo),
+                        );
+                      },
+                      onReorder: (int oldIndex, int newIndex) {
+                        setState(() {
+                          if (oldIndex < newIndex)
+                            newIndex -= 1;
+                          final Todo item = widget.source.items.removeAt(oldIndex);
+                          widget.source.items.insert(newIndex, item);
+                          widget.source.isComplete;
+                        });
+                      },
+                    ),
+                    TextButton(
+                      onPressed: () async {
+                        Todo added = await showDialog<Todo>(
+                          context: context,
+                          builder: (context) => TodoDialog(),
+                        );
 
-                    Todo item = widget.source.items[index];
-
-                    if (item is TodoList)
-                      return TodoListTile(
-                        source: item,
-                        onChange: (_) => _change(widget.source.isComplete),
-                        onAdd: widget.onAdd,
-                        onEdit: (todo) =>
-                            widget.onEditItem?.call(widget.source, index, todo),
-                        onEditItem: widget.onEditItem,
-                        onDelete: (todo) =>
-                            widget.onDeleteItem?.call(widget.source, todo),
-                        onDeleteItem: widget.onDeleteItem,
-                      );
-                    return TodoTile(
-                      source: item,
-                      onChange: (_) => _change(widget.source.isComplete),
-                      onEdit: (todo) =>
-                          widget.onEditItem?.call(widget.source, index, todo),
-                      onDelete: (todo) =>
-                          widget.onDeleteItem?.call(widget.source, todo),
-                    );
-                  },
+                        if (added != null)
+                          widget.onAdd?.call(widget.source, added);
+                      },
+                      child: Wrap(
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        spacing: 5,
+                        children: [
+                          Icon(Icons.add),
+                          Text('Add item'),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),

@@ -15,7 +15,7 @@ class TodoPage extends StatefulWidget {
 }
 
 class _TodoPageState extends State<TodoPage> {
-  List<TodoList> lists;
+  List<TodoList> lists = [];
 
   @override
   void initState() {
@@ -58,9 +58,12 @@ class _TodoPageState extends State<TodoPage> {
               ),
             ),
             Expanded(
-              child: ListView.builder(
-                itemCount: lists?.length ?? 0,
+              child: ReorderableListView.builder(
+                buildDefaultDragHandles: false,
+                itemCount: lists.length,
                 itemBuilder: (context, index) => TodoListTile(
+                  index: index,
+                  key: Key('$index'),
                   source: lists[index],
                   onChange: (_) => _save().then((_) => print('saved')),
                   onAdd: _onAdd,
@@ -70,6 +73,15 @@ class _TodoPageState extends State<TodoPage> {
                   onDeleteItem: _onDelete,
                   primary: true,
                 ),
+                onReorder: (int oldIndex, int newIndex) {
+                  setState(() {
+                    if (oldIndex < newIndex)
+                      newIndex -= 1;
+                    final TodoList item = lists.removeAt(oldIndex);
+                    lists.insert(newIndex, item);
+                    _refreshDoneValues();
+                  });
+                },
               ),
             ),
           ],
@@ -80,7 +92,7 @@ class _TodoPageState extends State<TodoPage> {
         onPressed: () async {
           Todo added = await showDialog<Todo>(
               context: context,
-              child: TodoDialog(
+              builder: (context) => TodoDialog(
                   isList: true, canChangeType: false));
 
           if (added != null) _onAdd(null, added);

@@ -128,7 +128,7 @@ class _TodoDialogState extends State<TodoDialog> {
         else {
           bool confirm = await showDialog<bool>(
             context: context,
-            child: AlertDialog(
+            builder: (context) => AlertDialog(
               content: Text(
                   'You are changing a not empty List into a Todo. You will lose all its items.'),
               actions: [
