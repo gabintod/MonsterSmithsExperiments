@@ -60,93 +60,93 @@ class _TodoListTileState extends State<TodoListTile> {
         child: Column(
           children: [
             GestureDetector(
-              child: ReorderableDragStartListener(
-                index: widget.index,
-                child: ListTile(
-                  leading: widget.source.done == true
-                      ? Icon(Icons.check_box,
-                      color: Theme.of(context).colorScheme.primary)
-                      : Icon(Icons.check_box_outline_blank),
-                  trailing: Icon(expanded
-                      ? Icons.keyboard_arrow_up
-                      : Icons.keyboard_arrow_down),
-                  title: Text(widget.source.title ?? ''),
-                  subtitle: widget.source.description != null &&
-                      widget.source.description.trim().isNotEmpty
-                      ? Text(widget.source.description)
-                      : null,
-                  onTap: () => setState(() => expanded = !expanded),
-                  onLongPress: () async {
-                    bool isDelete = await showMenu<bool>(
-                      context: context,
-                      position: RelativeRect.fromRect(
-                        _tapPosition & const Size(40, 40),
-                        Offset.zero & (Overlay.of(context).context.findRenderObject() as RenderBox).size,
+              child: ListTile(
+                leading: widget.source.done == true
+                    ? Icon(Icons.check_box,
+                    color: Theme.of(context).colorScheme.primary)
+                    : Icon(Icons.check_box_outline_blank),
+                trailing: ReorderableDragStartListener(
+                    index: widget.index,
+                    child: Icon(expanded
+                        ? Icons.keyboard_arrow_up
+                        : Icons.keyboard_arrow_down),
+                ),
+                title: Text(widget.source.title ?? ''),
+                subtitle: widget.source.description != null &&
+                    widget.source.description.trim().isNotEmpty
+                    ? Text(widget.source.description)
+                    : null,
+                onTap: () => setState(() => expanded = !expanded),
+                onLongPress: () async {
+                  bool isDelete = await showMenu<bool>(
+                    context: context,
+                    position: RelativeRect.fromRect(
+                      _tapPosition & const Size(40, 40),
+                      Offset.zero & (Overlay.of(context).context.findRenderObject() as RenderBox).size,
+                    ),
+                    items: [
+                      PopupMenuItem<bool>(
+                        value: false,
+                        child: Text('Edit'),
                       ),
-                      items: [
-                        PopupMenuItem<bool>(
-                          value: false,
-                          child: Text('Edit'),
-                        ),
-                        PopupMenuItem<bool>(
-                          value: true,
-                          child: Text('Delete'),
-                        ),
-                      ],
+                      PopupMenuItem<bool>(
+                        value: true,
+                        child: Text('Delete'),
+                      ),
+                    ],
+                  );
+
+                  if (isDelete == false) {
+                    Todo edited = await showDialog<Todo>(
+                      context: context,
+                      builder: (context) => TodoDialog(
+                        canChangeType: !widget.primary,
+                        source: widget.source,
+                      ),
                     );
 
-                    if (isDelete == false) {
-                      Todo edited = await showDialog<Todo>(
-                        context: context,
-                        builder: (context) => TodoDialog(
-                          canChangeType: !widget.primary,
-                          source: widget.source,
-                        ),
-                      );
+                    if (edited != null) widget.onEdit?.call(edited);
+                  } else if (isDelete == true) {
+                    bool delete = await showDialog<bool>(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        content: Text(
+                            'You are deleting a non empty List. All its items will be lost.'),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(context, false),
+                            child: Text('Cancel'),
+                          ),
+                          TextButton(
+                            onPressed: () => Navigator.pop(context, true),
+                            child: Text('Continue'),
+                          ),
+                        ],
+                      ),
+                    );
 
-                      if (edited != null) widget.onEdit?.call(edited);
-                    } else if (isDelete == true) {
-                      bool delete = await showDialog<bool>(
-                        context: context,
-                        builder: (context) => AlertDialog(
-                          content: Text(
-                              'You are deleting a non empty List. All its items will be lost.'),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.pop(context, false),
-                              child: Text('Cancel'),
-                            ),
-                            TextButton(
-                              onPressed: () => Navigator.pop(context, true),
-                              child: Text('Continue'),
-                            ),
-                          ],
-                        ),
-                      );
+                    if (delete != true) return;
 
-                      if (delete != true) return;
+                    delete = await showDialog<bool>(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        content: Text('Delete ${widget.source.title} ?'),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(context, false),
+                            child: Text('No'),
+                          ),
+                          TextButton(
+                            onPressed: () => Navigator.pop(context, true),
+                            child: Text('Yes'),
+                          ),
+                        ],
+                      ),
+                    );
 
-                      delete = await showDialog<bool>(
-                        context: context,
-                        builder: (context) => AlertDialog(
-                          content: Text('Delete ${widget.source.title} ?'),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.pop(context, false),
-                              child: Text('No'),
-                            ),
-                            TextButton(
-                              onPressed: () => Navigator.pop(context, true),
-                              child: Text('Yes'),
-                            ),
-                          ],
-                        ),
-                      );
-
-                      if (delete == true) widget.onDelete?.call(widget.source);
-                    }
-                  },
-                ),
+                    if (delete == true) widget.onDelete?.call(widget.source);
+                  }
+                },
               ),
               onTapDown: (details) => _tapPosition = details.globalPosition,
             ),
